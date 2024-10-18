@@ -2,13 +2,16 @@ package com.sirma.demo.model.dto;
 
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import org.pojava.datetime.DateTime;
 
 import java.time.LocalDate;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 
 public class EmployeeProjectsDTO {
 
-private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
     private static final String NULL = "NULL";
 
     @JsonProperty(value = "EmpID", index = 0)
@@ -48,11 +51,7 @@ private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("
     }
 
     public void setDateFrom(String dateFrom) {
-        if (NULL.equals(dateFrom)) {
-            this.dateFrom = LocalDate.now();
-        } else {
-            this.dateFrom = LocalDate.parse(dateFrom, formatter);
-        }
+        this.dateFrom = parseStringToLocalDate(dateFrom);
     }
 
     public LocalDate getDateTo() {
@@ -61,5 +60,26 @@ private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("
 
     public void setDateTo(LocalDate dateTo) {
         this.dateTo = dateTo;
+    }
+
+    public void setDateTo(String dateTo) {
+        this.dateTo = parseStringToLocalDate(dateTo);
+    }
+
+    private LocalDate parseStringToLocalDate(String date) {
+        LocalDate retVal;
+        if (NULL.equals(date)) {
+            retVal = LocalDate.now();
+        } else {
+            try {
+                retVal = LocalDate.parse(date, formatter);
+            } catch (DateTimeParseException e) {
+                // try to parse date of ANY kind of string; Note it will produce unexpected results if the date format
+                // is different than one expected of the locale, as it relies on locale to figure out how to parse
+                // ambiguous dates such as 01-01-01
+                retVal = DateTime.parse(date).toDate().toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            }
+        }
+        return retVal;
     }
 }

@@ -50,16 +50,18 @@ public class SirmaServiceImpl implements SirmaService {
      * @param secondDto the other of the employee entry
      */
     private void addToPairDaysMap(Map<String, Integer> pairDaysMap, EmployeeProjectsDTO firstDto, EmployeeProjectsDTO secondDto) {
+        if (firstDto.getEmployeeId().equals(secondDto.getEmployeeId())) {
+            // an employee can't be paired with themselves
+            return;
+        }
         String key = new String(firstDto.getEmployeeId() < secondDto.getEmployeeId() ?
                 firstDto.getEmployeeId() + "," + secondDto.getEmployeeId() :
                 secondDto.getEmployeeId() + "," + firstDto.getEmployeeId());
         Integer value;
-        if (secondDto.getDateTo() != null &&
-                (firstDto.getDateFrom().isBefore(secondDto.getDateTo()) || firstDto.getDateFrom().isEqual(secondDto.getDateTo()))) { // check if they worked in same time period
+        if (isFirstEmpWorkBeforeAndDuringSecondEmp(firstDto, secondDto)) { // check if they worked in same time period
             LocalDate earlierDate = firstDto.getDateFrom().isBefore(secondDto.getDateFrom()) ? secondDto.getDateFrom() : firstDto.getDateFrom();
             value = calculateDaysBetweenStartAndEndInclusive(earlierDate, secondDto.getDateTo());
-        } else if (firstDto.getDateTo() != null &&
-                (secondDto.getDateFrom().isBefore(firstDto.getDateTo()) || secondDto.getDateFrom().isEqual(firstDto.getDateTo()))) {
+        } else if (isFirstEmpWorkBeforeAndDuringSecondEmp(secondDto, firstDto)) {
             LocalDate earlierDate = firstDto.getDateFrom().isBefore(secondDto.getDateFrom()) ? secondDto.getDateFrom() : firstDto.getDateFrom();
             value = calculateDaysBetweenStartAndEndInclusive(earlierDate, firstDto.getDateTo());
         } else {
@@ -86,5 +88,12 @@ public class SirmaServiceImpl implements SirmaService {
         // +1 necessary because we want to measure from start of first day to end of last day
         result = result+1;
         return result;
+    }
+
+    private boolean isFirstEmpWorkBeforeAndDuringSecondEmp(EmployeeProjectsDTO first, EmployeeProjectsDTO second) {
+        return second.getDateTo() != null &&
+                (first.getDateFrom().isBefore(second.getDateTo()) || first.getDateFrom().isEqual(second.getDateTo())) &&
+                (first.getDateTo().isAfter(second.getDateFrom()) || first.getDateTo().isEqual(second.getDateFrom()));
+
     }
 }

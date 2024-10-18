@@ -44,6 +44,12 @@
 			<artifactId>jackson-dataformat-csv</artifactId>
 		</dependency>
 
+		<dependency>
+			<groupId>edu.utah.bmi.pojava</groupId>
+			<artifactId>pojava</artifactId>
+			<version>3.0.9</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

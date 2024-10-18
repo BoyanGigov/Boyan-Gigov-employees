@@ -1,5 +1,6 @@
 package com.sirma.demo.rest;
 
+import com.fasterxml.jackson.databind.JsonMappingException;
 import com.sirma.demo.converter.SirmaCsvConverter;
 import com.sirma.demo.model.dto.EmployeeProjectsDTO;
 import com.sirma.demo.service.SirmaService;
@@ -34,6 +35,9 @@ public class SirmaRestController {
         List<EmployeeProjectsDTO> data;
         try {
             data = sirmaCsvConverter.convertMultipartCsvToList(uploadedFile, EmployeeProjectsDTO.class);
+        } catch (JsonMappingException e) {
+            System.out.println("Exception during parsing: " + e.getMessage());
+            return ResponseEntity.internalServerError().body("Failed to parse the csv file: " + e.getMessage().substring(0, e.getMessage().indexOf(" at ")));
         } catch (Exception e) {
             System.out.println("Exception during parsing: " + e.getMessage());
             return ResponseEntity.internalServerError().body("Failed to parse the csv file");
@@ -48,7 +52,7 @@ public class SirmaRestController {
         }
         Optional<Map.Entry<String, Integer>> result = pairDaysMap.entrySet().stream().max(Map.Entry.comparingByValue());
         if (!result.isPresent()) {
-            ResponseEntity.ok("None of the provided employees have worked on the same project at the same time");
+            return ResponseEntity.ok("None of the provided employees have worked on the same project at the same time");
         }
         Map.Entry<String, Integer> finalEntry = result.get();
         return ResponseEntity.ok("Employee pair " + finalEntry.getKey() + " has worked the most together, " + finalEntry.getValue() + " days");
